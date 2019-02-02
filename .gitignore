@@ -6,12 +6,6 @@
 build/
 target/
 
-src/main/java/com/cwiztech/ServletInitializer.java
-src/main/java/com/cwiztech/WebInitializer.java
-
-src/main/resources/application.properties
-
-pom.xml
 mvnw.cmd
 mvnw
 
