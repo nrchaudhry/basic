@@ -1,6 +1,5 @@
 package com.cwiztech.datalogs.model;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -27,8 +26,9 @@ public class APIRequestDataLog {
 	@JoinColumn(name = "DATABASETABLE_ID")
 	private DatabaseTables DATABASETABLE_ID;
 
-	@Column(name = "REQUEST_ID")
-	private long REQUEST_ID;
+	@OneToOne
+	@JoinColumn(name = "REQUEST_ID")
+	private LoginUser REQUEST_ID;
 
 	@Column(name = "REQUEST_TYPE")
 	private String REQUEST_TYPE;
@@ -44,10 +44,6 @@ public class APIRequestDataLog {
 
 	@Column(name = "REQUEST_STATUS")
 	private String REQUEST_STATUS;
-
-	@OneToOne(cascade = { CascadeType.ALL })
-	@JoinColumn(name = "LOG_BY")
-	private LoginUser LOG_BY;
 
 	@Column(name = "LOG_WORKSTATION")
 	private String LOG_WORKSTATION;
@@ -76,11 +72,11 @@ public class APIRequestDataLog {
 		DATABASETABLE_ID = dATABASETABLE_ID;
 	}
 
-	public long getREQUEST_ID() {
+	public LoginUser getREQUEST_ID() {
 		return REQUEST_ID;
 	}
 
-	public void setREQUEST_ID(long rEQUEST_ID) {
+	public void setREQUEST_ID(LoginUser rEQUEST_ID) {
 		REQUEST_ID = rEQUEST_ID;
 	}
 
@@ -103,7 +99,6 @@ public class APIRequestDataLog {
 	public String getREQUEST_INPUT() {
 		return REQUEST_INPUT;
 	}
-
 	public void setREQUEST_INPUT(String rEQUEST_INPUT) {
 		REQUEST_INPUT = rEQUEST_INPUT;
 	}
@@ -122,14 +117,6 @@ public class APIRequestDataLog {
 
 	public void setREQUEST_STATUS(String rEQUEST_STATUS) {
 		REQUEST_STATUS = rEQUEST_STATUS;
-	}
-
-	public LoginUser getLOG_BY() {
-		return LOG_BY;
-	}
-
-	public void setLOG_BY(LoginUser lOG_BY) {
-		LOG_BY = lOG_BY;
 	}
 
 	public String getLOG_WORKSTATION() {

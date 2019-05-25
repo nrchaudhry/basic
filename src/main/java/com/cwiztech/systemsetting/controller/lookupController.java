@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +27,7 @@ import com.cwiztech.login.model.LoginUser;
 import com.cwiztech.login.repository.loginUserRepository;
 import com.cwiztech.systemsetting.model.Lookup;
 import com.cwiztech.systemsetting.repository.lookupRepository;
+import com.cwiztech.token.AccessToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,7 +42,7 @@ public class lookupController{
 	private lookupRepository lookuprepository;
 	
 	@Autowired
-	private loginUserRepository userrepository;
+	private loginUserRepository loginuserrepository;
 	
 	@Autowired
 	private apiRequestDataLogRepository apirequestdatalogRepository;
@@ -49,120 +51,118 @@ public class lookupController{
 	private tableDataLogRepository tbldatalogrepository;
 	
 	@Autowired
-	private databaseTablesRepository databaetablesrepository;
-	
-	@RequestMapping(method=RequestMethod.GET)
-	public List<Lookup> list() throws JsonProcessingException {
+	private databaseTablesRepository databasetablesrepository;
+		
+	@RequestMapping(method = RequestMethod.GET)
+	public String get(@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
-		System.out.println("lookup");
+		log.info("GET: /lookup");
+
+		List<Lookup> lookup = lookuprepository.findActive();
+		String rtn, workstation = null;
 		
-		List<Lookup> lookup =  lookuprepository.findAll();
-		
-		System.out.println("Output: "+mapper.writeValueAsString(lookup));
-		System.out.println("--------------------------------------------------------");
-		
-		return lookup;
-	}
-	
-	@RequestMapping(value="/entitylist",method=RequestMethod.GET)
-	public String findEntityList() throws JsonProcessingException {
-		ObjectMapper mapper = new ObjectMapper();
 		LoginUser requestUser;
-		
-		log.info("GET: /lookup/entitylist");
-		
-		List<Object> lookup =  lookuprepository.findEntityList();
-		String rtnLookup, workstation=null;
-		
-		DatabaseTables databaseTableID = databaetablesrepository.findOne(Lookup.getDatabaseTableID());
-		requestUser=userrepository.findOne((long) 0);
-		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, 0, "/lookup/entitylist", null, requestUser, workstation);
-		
-		rtnLookup = mapper.writeValueAsString(lookup);
-		
-		apiRequest.setREQUEST_OUTPUT(rtnLookup);
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, requestUser, "/lookup", null,
+				workstation);
+
+		rtn = mapper.writeValueAsString(lookup);
+
+		apiRequest.setREQUEST_OUTPUT(rtn);
 		apiRequest.setREQUEST_STATUS("Success");
 		apirequestdatalogRepository.saveAndFlush(apiRequest);
-		
-		log.info("Output: "+rtnLookup);
+
+		log.info("Output: " + rtn);
 		log.info("--------------------------------------------------------");
-		
-		return rtnLookup;
+
+		return rtn;
 	}
-	
-	@RequestMapping(value="/entity",method=RequestMethod.POST)
-	public List<Lookup> findActiveByEntityName(@RequestBody String data) throws JsonProcessingException {
+
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	public String getOne(@PathVariable Long id,@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
-		System.out.println("lookup/entity");
-		System.out.println("Input: "+mapper.writeValueAsString(data));
+		log.info("GET: /lookup/" + id);
+
+		Lookup lookup = lookuprepository.findOne(id);
+		String rtn, workstation = null;
+
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
 		
-		JSONObject jsonObj = new JSONObject(data);
-		String entity=(String) jsonObj.get("entityname");
-		
-		List<Lookup> lookup =  lookuprepository.findActiveByEntityName(entity);
-		
-		System.out.println("Output: "+mapper.writeValueAsString(lookup));
-		System.out.println("--------------------------------------------------------");
-		
-		return lookup;
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, requestUser, "/lookup/" + id,
+				null, workstation);
+
+		rtn = mapper.writeValueAsString(lookup);
+
+		apiRequest.setREQUEST_OUTPUT(rtn);
+		apiRequest.setREQUEST_STATUS("Success");
+		apirequestdatalogRepository.saveAndFlush(apiRequest);
+
+		log.info("Output: " + rtn);
+		log.info("--------------------------------------------------------");
+
+		return rtn;
 	}
-	
-	@RequestMapping(value="/entity/all",method=RequestMethod.POST)
-	public List<Lookup> findAllByEntityName(@RequestBody String data) throws JsonProcessingException {
+
+	@RequestMapping(value = "/all", method = RequestMethod.GET)
+	public String getAll(@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
-		System.out.println("lookup/admissioncourselocation");
-		System.out.println("Input: "+mapper.writeValueAsString(data));
+		log.info("GET: /lookup/all");
+
+		List<Lookup> lookup = lookuprepository.findAll();
+		String rtn, workstation = null;
 		
-		JSONObject jsonObj = new JSONObject(data);
-		String entity=(String) jsonObj.get("entityname");
-		
-		List<Lookup> lookup =  lookuprepository.findAllByEntityName(entity);
-		
-		System.out.println("Output: "+mapper.writeValueAsString(lookup));
-		System.out.println("--------------------------------------------------------");
-		
-		return lookup;
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, requestUser,
+				"/lookup/all", null, workstation);
+
+		rtn = mapper.writeValueAsString(lookup);
+
+		apiRequest.setREQUEST_OUTPUT(rtn);
+		apiRequest.setREQUEST_STATUS("Success");
+		apirequestdatalogRepository.saveAndFlush(apiRequest);
+
+		log.info("Output: " + rtn);
+		log.info("--------------------------------------------------------");
+
+		return rtn;
 	}
-	
-	@RequestMapping(value="/{id}",method=RequestMethod.GET)
-	public Lookup get(@PathVariable Long id) throws JsonProcessingException{
-		ObjectMapper mapper = new ObjectMapper();
-		System.out.println("lookup/admissioncourselocation");
-		System.out.println("Input: "+id);
-		
-		Lookup lookup =  lookuprepository.findOne(id);
-		
-		System.out.println("Output: "+mapper.writeValueAsString(lookup));
-		System.out.println("--------------------------------------------------------");
-		
-		return lookup;
-	}
-	
+
 	@RequestMapping(method = RequestMethod.POST)
-	public String createLookup(@RequestBody String data) throws JsonProcessingException,JSONException, ParseException
-	{
+	public String insert(@RequestBody String data,@RequestHeader(value = "Authorization") String headToken)
+			throws JsonProcessingException, JSONException, ParseException {
 		SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd/MMM/YYYY HH:mm:ss");
 		Date date = new Date();
 		ObjectMapper mapper = new ObjectMapper();
-		LoginUser requestUser;
 		
+
 		log.info("POST: /lookup");
-		log.info("Input: "+data);
-		
-		JSONObject jsonObj=new JSONObject(data);
+		log.info("Input: " + data);
+
+		JSONObject jsonObj = new JSONObject(data);
 		Lookup lookup = new Lookup();
-		String rtn, workstation=null;
+		String rtn, workstation = null;
 		
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
 		
-		DatabaseTables databaseTableID = databaetablesrepository.findOne(Lookup.getDatabaseTableID());
-		if (jsonObj.has("user"))
-			requestUser=userrepository.getUser(jsonObj.getString("user"));
-		else
-			requestUser=userrepository.findOne((long) 0);
 		if (jsonObj.has("workstation"))
-			workstation=jsonObj.getString("workstation");
-		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("POST", databaseTableID, 0, "/lookup", data, requestUser, workstation);
-			
+			workstation = jsonObj.getString("workstation");
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("POST", databaseTableID, requestUser, "/lookup", data,
+				workstation);
+
 		if (!jsonObj.has("entityname")) {
 			apiRequest = tableDataLogs.errorDataLog(apiRequest, "Lookup", "Entityname  is missing");
 			apirequestdatalogRepository.saveAndFlush(apiRequest);
@@ -193,47 +193,45 @@ public class lookupController{
 		lookup.setMODIFIED_WHEN(dateFormat1.format(date));
 		lookup = lookuprepository.saveAndFlush(lookup);
 		rtn = mapper.writeValueAsString(lookup);
-		
-		tbldatalogrepository.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, requestUser, rtn));
-		
-		apiRequest.setREQUEST_ID(lookup.getID());
+
+		tbldatalogrepository
+				.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, (long) 0, rtn));
+
 		apiRequest.setREQUEST_OUTPUT(rtn);
 		apiRequest.setREQUEST_STATUS("Success");
 		apirequestdatalogRepository.saveAndFlush(apiRequest);
-		
-		log.info("Output: "+rtn);
+
+		log.info("Output: " + rtn);
 		log.info("--------------------------------------------------------");
-		
+
 		return rtn;
-		
+
 	}
-	
-	
-	@RequestMapping(value="/{id}", method = RequestMethod.PUT)
-	public String updateLookup(@PathVariable Long id, @RequestBody String data) throws JsonProcessingException,JSONException, ParseException
-	{
+
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	public String update(@PathVariable Long id, @RequestBody String data,@RequestHeader(value = "Authorization") String headToken)
+			throws JsonProcessingException, JSONException, ParseException {
 		SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd/MMM/YYYY HH:mm:ss");
 		Date date = new Date();
 		ObjectMapper mapper = new ObjectMapper();
-		LoginUser requestUser;
 		
-		log.info("PUT: /lookup/"+id);
-		log.info("Input: "+data);
-		
-		JSONObject jsonObj=new JSONObject(data);
+		log.info("PUT: /lookup/" + id);
+		log.info("Input: " + data);
+
+		JSONObject jsonObj = new JSONObject(data);
 		Lookup lookup = lookuprepository.findOne(id);
-		String rtn, workstation=null;
+		String rtn, workstation = null;
 		
-		
-		DatabaseTables databaseTableID = databaetablesrepository.findOne(Lookup.getDatabaseTableID());
-		if (jsonObj.has("user"))
-			requestUser=userrepository.getUser(jsonObj.getString("user"));
-		else
-			requestUser=userrepository.findOne((long) 0);
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
 		if (jsonObj.has("workstation"))
-			workstation=jsonObj.getString("workstation");
-		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("PUT", databaseTableID, 0, "/department", data, requestUser, workstation);
-	
+			workstation = jsonObj.getString("workstation");
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("PUT", databaseTableID, requestUser, "/lookup", data,
+				workstation);
+
 		if (jsonObj.has("entityname") && !jsonObj.isNull("entityname"))
 			lookup.setENTITYNAME(jsonObj.getString("entityname"));
 		if (jsonObj.has("code") && !jsonObj.isNull("code"))
@@ -250,10 +248,202 @@ public class lookupController{
 		lookup.setMODIFIED_WHEN(dateFormat1.format(date));
 		lookup = lookuprepository.saveAndFlush(lookup);
 		rtn = mapper.writeValueAsString(lookup);
+
+		tbldatalogrepository.saveAndFlush(
+				tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, (long) 0, rtn));
+
+		apiRequest.setREQUEST_OUTPUT(rtn);
+		apiRequest.setREQUEST_STATUS("Success");
+		apirequestdatalogRepository.saveAndFlush(apiRequest);
+
+		log.info("Output: " + rtn);
+		log.info("--------------------------------------------------------");
+
+		return rtn;
+	}
+
+	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+	public String delete(@PathVariable Long id,@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException, JSONException, ParseException {
+		ObjectMapper mapper = new ObjectMapper();
+		log.info("DELETE: /lookup/" + id);
+
+		Lookup lookup = lookuprepository.findOne(id);
+		String rtn, workstation = null;
+
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
 		
-		tbldatalogrepository.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, requestUser, rtn));
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("DELETE", databaseTableID, requestUser, "/lookup", null,
+				workstation);
+
+		lookuprepository.delete(lookup);
+		rtn = mapper.writeValueAsString(lookup);
+
+		tbldatalogrepository.saveAndFlush(
+				tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, (long) 0, rtn));
+
+		apiRequest.setREQUEST_OUTPUT(rtn);
+		apiRequest.setREQUEST_STATUS("Success");
+		apirequestdatalogRepository.saveAndFlush(apiRequest);
+
+		log.info("Output: " + rtn);
+		log.info("--------------------------------------------------------");
+
+		return rtn;
+	}
+
+	@RequestMapping(value = "/remove/{id}", method = RequestMethod.GET)
+	public String remove(@PathVariable Long id,@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException, JSONException, ParseException {
+		SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd/MMM/YYYY HH:mm:ss");
+		Date date = new Date();
+
+		ObjectMapper mapper = new ObjectMapper();
 		
-		apiRequest.setREQUEST_ID(lookup.getID());
+		log.info("GET: /lookup/" + id + "/remove");
+
+		Lookup lookup = lookuprepository.findOne(id);
+		String rtn, workstation = null;
+
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+		
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, requestUser,
+				"/lookup" + id + "/remove", "", workstation);
+		lookup.setISACTIVE("N");
+		lookup.setMODIFIED_BY(requestUser);
+		lookup.setMODIFIED_WORKSTATION(workstation);
+		lookup.setMODIFIED_WHEN(dateFormat1.format(date));
+		lookup = lookuprepository.saveAndFlush(lookup);
+		rtn = mapper.writeValueAsString(lookup);
+		tbldatalogrepository
+				.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, (long) 0, rtn));
+
+		apiRequest.setREQUEST_OUTPUT(rtn);
+		apiRequest.setREQUEST_STATUS("Success");
+		apirequestdatalogRepository.saveAndFlush(apiRequest);
+
+		log.info("Output: " + rtn);
+		log.info("--------------------------------------------------------");
+
+		return rtn;
+	}
+
+	@RequestMapping(value = "/search", method = RequestMethod.POST)
+	public String getBySearch(@RequestBody String data,@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
+		return BySearch(data, true, headToken);
+
+	}
+
+	@RequestMapping(value = "/search/all", method = RequestMethod.POST)
+	public String getAllBySearch(@RequestBody String data,@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
+		return BySearch(data, false, headToken);
+
+	}
+
+	public String BySearch(String data, boolean active, String headToken) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		
+		log.info("POST: lookup/search" + ((active == true) ? "" : "/all"));
+		log.info("Input: " + data);
+
+		JSONObject jsonObj = new JSONObject(data);
+		String rtn = null, workstation = null;
+
+		List<Lookup> lookup = ((active == true)
+				? lookuprepository.findBySearch("%" + jsonObj.getString("search") + "%")
+				: lookuprepository.findAllBySearch("%" + jsonObj.getString("search") + "%"));
+		
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("POST", databaseTableID, requestUser,
+				"/lookup/search" + ((active == true) ? "" : "/all"), null, workstation);
+
+		rtn = mapper.writeValueAsString(lookup);
+
+		apiRequest.setREQUEST_OUTPUT(rtn);
+		apiRequest.setREQUEST_STATUS("Success");
+		apirequestdatalogRepository.saveAndFlush(apiRequest);
+
+		log.info("Output: " + rtn);
+		log.info("--------------------------------------------------------");
+
+		return rtn;
+
+	}
+
+	@RequestMapping(value = "/advancedsearch", method = RequestMethod.POST)
+	public String getByAdvancedSearch(@RequestBody String data,@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
+		return ByAdvancedSearch(data, true, headToken);
+	}
+
+	@RequestMapping(value = "/advancedsearch/all", method = RequestMethod.POST)
+	public String getAllByAdvancedSearch(@RequestBody String data,@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
+		return ByAdvancedSearch(data, false, headToken);
+	}
+
+	public String ByAdvancedSearch(String data, boolean active, String headToken) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		
+		log.info("POST: lookup/advancedsearch" + ((active == true) ? "" : "/all"));
+		log.info("Input: " + data);
+
+		JSONObject jsonObj = new JSONObject(data);
+		long lookup_ID = 0;
+
+		if (jsonObj.has("lookup_ID"))
+			lookup_ID = jsonObj.getLong("lookup_ID");
+
+		List<Lookup> lookup = ((active == true)
+				? lookuprepository.findByAdvancedSearch(lookup_ID)
+				: lookuprepository.findAllByAdvancedSearch(lookup_ID));
+		String rtn, workstation = null;
+
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+		
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("POST", databaseTableID, requestUser,
+				"/lookup/advancedsearch" + ((active == true) ? "" : "/all"), data, workstation);
+
+		rtn = mapper.writeValueAsString(lookup);
+
+		apiRequest.setREQUEST_OUTPUT(rtn);
+		apiRequest.setREQUEST_STATUS("Success");
+		apirequestdatalogRepository.saveAndFlush(apiRequest);
+
+		log.info("Output: " + rtn);
+		log.info("--------------------------------------------------------");
+
+		return rtn;
+	}
+
+	@RequestMapping(value="/entitylist",method=RequestMethod.GET)
+	public String findEntityList(@RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		
+		log.info("GET: /lookup/entitylist");
+		
+		List<Object> lookup =  lookuprepository.findEntityList();
+		String rtn, workstation=null;
+		
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, requestUser,
+				"/lookup/entitylist", null, workstation);
+		
+		rtn = mapper.writeValueAsString(lookup);
+		
 		apiRequest.setREQUEST_OUTPUT(rtn);
 		apiRequest.setREQUEST_STATUS("Success");
 		apirequestdatalogRepository.saveAndFlush(apiRequest);
@@ -264,162 +454,67 @@ public class lookupController{
 		return rtn;
 	}
 	
-	/*
-	@RequestMapping(value="/all/{id}",method=RequestMethod.GET)
-	public List<Lookup> getlookup(@PathVariable Long id){
-	return lookuprepository.getLookup(id);
-	
-	}
-	
-	@RequestMapping(method=RequestMethod.POST)
-	public Lookup create(@RequestBody Lookup data) throws JsonProcessingException{
-	ObjectMapper mapper = new ObjectMapper();
-	SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd/MMM/YYYY HH:mm:ss");
-	Date date = new Date();
-	System.out.println("semester/add");
-	System.out.println("Input: "+data);
-	
-	data.setSTATUS("Y");
-	if (data.getCREATED_BY()==null)
-	data.setCREATED_BY(userrepository.findOne((long) 0));
-	data.setCREATED_WHEN(dateFormat1.format(date));
-	Lookup lookup = lookuprepository.saveAndFlush(data);
-	
-	
-	tbldatalogrepository.saveAndFlush(tableDataLogs.TableDeleteDataLog(lookup.getID(), databaetablesrepository.findOne((long) 12), lookup.getCREATED_BY(), mapper.writeValueAsString(lookup)));
-	
-	System.out.println("Output: "+mapper.writeValueAsString(lookup));
-	System.out.println("--------------------------------------------------------");
-	return lookup;
-	}
-	
-	@RequestMapping(value="/{id}",method=RequestMethod.PUT)
-	public Lookup update(@PathVariable Long id,@RequestBody Lookup data) throws JsonProcessingException{
-	ObjectMapper mapper = new ObjectMapper();
-	SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd/MMM/YYYY HH:mm:ss");
-	Date date = new Date();
-	System.out.println("semester/update/"+id);
-	System.out.println("Input: "+mapper.writeValueAsString(data));
-	
-	if (data.getCREATED_BY()==null)
-	data.setCREATED_BY(userrepository.findOne((long) 0));
-	data.setCREATED_WHEN(dateFormat1.format(date));
-	
-	Lookup lookup=lookuprepository.findOne(id);
-	BeanUtils.copyProperties(data, lookup);
-	lookup = lookuprepository.saveAndFlush(lookup);
-	
-	tbldatalogrepository.saveAndFlush(tableDataLogs.TableDeleteDataLog(lookup.getID(), databaetablesrepository.findOne((long) 12), lookup.getCREATED_BY(), mapper.writeValueAsString(lookup)));
-	
-	System.out.println("Output: "+mapper.writeValueAsString(lookup));
-	System.out.println("--------------------------------------------------------");
-	return lookup;
-	}
-	
-	@RequestMapping(value="/{id}",method=RequestMethod.DELETE)
-	public Lookup delete(@PathVariable Long id){
-	Lookup existingStd=lookuprepository.findOne(id);
-	lookuprepository.delete(existingStd);
-	return existingStd;
-	
-	}
-	
-	*/
-	
-	// Lookup services for Admission Online Application
-	
-	@RequestMapping(value="/active",method=RequestMethod.GET)
-	public List<Lookup> activelist() throws JsonProcessingException {
+	@RequestMapping(value="/entity",method=RequestMethod.POST)
+	public String findActiveByEntityName(@RequestBody String data, @RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
-		System.out.println("lookup/active");
-		
-		List<Lookup> lookup =  lookuprepository.findActiveForAdmission();
-		
-		System.out.println("Output: "+mapper.writeValueAsString(lookup));
-		System.out.println("--------------------------------------------------------");
-		
-		return lookup;
-	}
-	
-	// Lookup services for Academics
-	
-	@RequestMapping(value="/unitGroupBySemCourse",method=RequestMethod.POST)
-	public List<Lookup> unitGroupBySemCourse(@RequestBody String data) throws JsonProcessingException {
-		ObjectMapper mapper = new ObjectMapper();
-		System.out.println("lookup/unitGroupBySemCourse");
-		System.out.println("Input: "+mapper.writeValueAsString(data));
-		
-		JSONObject jsonObj = new JSONObject(data);
-		Long sID=jsonObj.getLong("semester_ID");
-		Long cID=jsonObj.getLong("course_ID");
-		Long uID=jsonObj.getLong("unit_ID");
-		
-		List<Lookup> lookup =  lookuprepository.getUnitGroupBySemCourse(sID, cID, uID);
-		
-		System.out.println("Output: "+mapper.writeValueAsString(lookup));
-		System.out.println("--------------------------------------------------------");
-		
-		return lookup;
-	}
-	
-	@RequestMapping(value="/unitGroupBySemCourseTimetable",method=RequestMethod.POST)
-	public List<Lookup> unitGroupBySemCourseTimetable(@RequestBody String data) throws JsonProcessingException {
-		ObjectMapper mapper = new ObjectMapper();
-		System.out.println("lookup/unitGroupBySemCourseTimetable");
-		System.out.println("Input: "+mapper.writeValueAsString(data));
-		
-		JSONObject jsonObj = new JSONObject(data);
-		Long sID=jsonObj.getLong("semester_ID");
-		Long cID=jsonObj.getLong("course_ID");
-		Long uID=jsonObj.getLong("unit_ID");
-		
-		List<Lookup> lookup =  lookuprepository.getUnitGroupBySemCourseTimetable(sID, cID, uID);
-		
-		System.out.println("Output: "+mapper.writeValueAsString(lookup));
-		System.out.println("--------------------------------------------------------");
-		
-		return lookup;
-	}
-	
-	@RequestMapping(value="/{id}/remove", method = RequestMethod.GET)
-	public String removeStudentLookup(@PathVariable Long id) throws JsonProcessingException,JSONException, ParseException
-	{
-		SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd/MMM/YYYY HH:mm:ss");
-		Date date = new Date();
-		
-		ObjectMapper mapper = new ObjectMapper();
-		LoginUser requestUser;
-		
-		log.info("GET: /lookup/"+id+"/remove");
-		
-		Lookup lookup = lookuprepository.findOne(id);
-		String rtnLookup, workstation=null;
-		
-		DatabaseTables databaseTableID = databaetablesrepository.findOne(Lookup.getDatabaseTableID());
-		requestUser=userrepository.findOne((long) 0);
-		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, 0, "/lookup"+id+"/remove", "", requestUser, workstation);
-		lookup.setISACTIVE("N");
-		lookup.setMODIFIED_BY(requestUser);
-		lookup.setMODIFIED_WORKSTATION(workstation);
-		lookup.setMODIFIED_WHEN(dateFormat1.format(date));
-		lookup = lookuprepository.saveAndFlush(lookup);
-		rtnLookup = mapper.writeValueAsString(lookup);
-		tbldatalogrepository.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, requestUser, rtnLookup));
 
-		apiRequest.setREQUEST_ID(lookup.getID());
-		apiRequest.setREQUEST_OUTPUT(rtnLookup);
+		log.info("POST: lookup/entity");
+		log.info("Input: " + data);
+		
+		JSONObject jsonObj = new JSONObject(data);
+		String entity=(String) jsonObj.get("entityname");
+		List<Lookup> lookup =  lookuprepository.findActiveByEntityName(entity);
+
+		String rtn, workstation = null;
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, requestUser,
+				"/lookup/entity", data, workstation);
+		
+		rtn = mapper.writeValueAsString(lookup);
+		
+		apiRequest.setREQUEST_OUTPUT(rtn);
 		apiRequest.setREQUEST_STATUS("Success");
 		apirequestdatalogRepository.saveAndFlush(apiRequest);
 		
-		log.info("Output: "+rtnLookup);
+		log.info("Output: "+rtn);
 		log.info("--------------------------------------------------------");
 		
-		return rtnLookup;
+		return rtn;
 	}
 	
-	
-	
-	
+	@RequestMapping(value="/entity/all",method=RequestMethod.POST)
+	public String findAllByEntityName(@RequestBody String data, @RequestHeader(value = "Authorization") String headToken) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
 
-	
+		log.info("POST: lookup/entity/all");
+		log.info("Input: " + data);
+		
+		JSONObject jsonObj = new JSONObject(data);
+		String entity=(String) jsonObj.get("entityname");
+
+		String rtn, workstation = null;
+		LoginUser requestUser;
+		String user_NAME = AccessToken.getTokenDetail(headToken);
+		requestUser = loginuserrepository.getUser(user_NAME);
+
+		DatabaseTables databaseTableID = databasetablesrepository.findOne(Lookup.getDatabaseTableID());
+		APIRequestDataLog apiRequest = tableDataLogs.apiRequestDataLog("GET", databaseTableID, requestUser,
+				"/lookup/entity/all", data, workstation);
+		
+		List<Lookup> lookup =  lookuprepository.findAllByEntityName(entity);
+		rtn = mapper.writeValueAsString(lookup);
+		
+		apiRequest.setREQUEST_OUTPUT(rtn);
+		apiRequest.setREQUEST_STATUS("Success");
+		apirequestdatalogRepository.saveAndFlush(apiRequest);
+		
+		log.info("Output: "+rtn);
+		log.info("--------------------------------------------------------");
+		
+		return rtn;
+	}
 };

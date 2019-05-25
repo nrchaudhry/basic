@@ -10,8 +10,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import com.cwiztech.login.model.LoginUser;
-
 @Entity
 @Table(name = "TABLEDATALOG")
 public class TableDataLog {
@@ -26,16 +24,15 @@ public class TableDataLog {
 	@Column(name = "TABLE_ID")
 	private long TABLE_ID;
 
-	@OneToOne
+	@OneToOne(cascade = { CascadeType.ALL })
 	@JoinColumn(name = "DATABASETABLE_ID")
 	private DatabaseTables DATABASETABLE_ID;
 
 	@Column(name = "TABLE_DATA")
 	private String TABLE_DATA;
 
-	@OneToOne(cascade = { CascadeType.ALL })
-	@JoinColumn(name = "TABLELOG_BY")
-	private LoginUser TABLELOG_BY;
+	@Column(name = "TABLELOG_BY")
+	private long TABLELOG_BY;
 
 	@Column(name = "ISDELETED")
 	private String ISDELETED;
@@ -68,6 +65,14 @@ public class TableDataLog {
 		return DATABASETABLE_ID;
 	}
 
+	public long getTABLELOG_BY() {
+		return TABLELOG_BY;
+	}
+
+	public void setTABLELOG_BY(long tABLELOG_BY) {
+		TABLELOG_BY = tABLELOG_BY;
+	}
+
 	public void setDATABASETABLE_ID(DatabaseTables dATABASETABLE_ID) {
 		DATABASETABLE_ID = dATABASETABLE_ID;
 	}
@@ -78,14 +83,6 @@ public class TableDataLog {
 
 	public void setTABLE_DATA(String tABLE_DATA) {
 		TABLE_DATA = tABLE_DATA;
-	}
-
-	public LoginUser getTABLELOG_BY() {
-		return TABLELOG_BY;
-	}
-
-	public void setTABLELOG_BY(LoginUser tABLELOG_BY) {
-		TABLELOG_BY = tABLELOG_BY;
 	}
 
 	public String getISDELETED() {
