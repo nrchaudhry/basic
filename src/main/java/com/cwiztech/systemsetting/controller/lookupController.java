@@ -195,7 +195,7 @@ public class lookupController{
 		rtn = mapper.writeValueAsString(lookup);
 
 		tbldatalogrepository
-				.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, (long) 0, rtn));
+				.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, requestUser.getUSER_ID(), rtn));
 
 		apiRequest.setREQUEST_OUTPUT(rtn);
 		apiRequest.setREQUEST_STATUS("Success");
@@ -250,7 +250,7 @@ public class lookupController{
 		rtn = mapper.writeValueAsString(lookup);
 
 		tbldatalogrepository.saveAndFlush(
-				tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, (long) 0, rtn));
+				tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, requestUser.getUSER_ID(), rtn));
 
 		apiRequest.setREQUEST_OUTPUT(rtn);
 		apiRequest.setREQUEST_STATUS("Success");
@@ -282,7 +282,7 @@ public class lookupController{
 		rtn = mapper.writeValueAsString(lookup);
 
 		tbldatalogrepository.saveAndFlush(
-				tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, (long) 0, rtn));
+				tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, requestUser.getUSER_ID(), rtn));
 
 		apiRequest.setREQUEST_OUTPUT(rtn);
 		apiRequest.setREQUEST_STATUS("Success");
@@ -320,7 +320,7 @@ public class lookupController{
 		lookup = lookuprepository.saveAndFlush(lookup);
 		rtn = mapper.writeValueAsString(lookup);
 		tbldatalogrepository
-				.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, (long) 0, rtn));
+				.saveAndFlush(tableDataLogs.TableSaveDataLog(lookup.getID(), databaseTableID, requestUser.getUSER_ID(), rtn));
 
 		apiRequest.setREQUEST_OUTPUT(rtn);
 		apiRequest.setREQUEST_STATUS("Success");
