@@ -112,7 +112,9 @@ public class AccessToken {
 
 	public static String getTokenDetail(String accessToken) {
 		log.info("----------------------------------------------------------------------------------");
-		log.info("Get Toeken Detail By Token Service");
+		log.info("Get Toeken Detail By Token Service ");
+		log.info("Application Path: " + applicationPath);
+		log.info("accessToken: " + accessToken);
 		log.info("----------------------------------------------------------------------------------");
 		RestTemplate restTemplate = new RestTemplate();
 		String UserDetail;
