@@ -1,14 +1,21 @@
-/target/
 !.mvn/wrapper/maven-wrapper.jar
+.mvn
 
 # Add any directories, files, or patterns you don't want to be tracked by version control
 
 build/
 target/
 
+
+src/main/java/com/cwiztech/ServletInitializer.java
+src/main/java/com/cwiztech/WebInitializer.java
+
+src/main/resources/application.properties
+
+pom.xml
 mvnw.cmd
 mvnw
-.mvn
+HELP.md
 
 ### STS ###
 .apt_generated

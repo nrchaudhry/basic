@@ -5,7 +5,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.cwiztech.login.model.LoginUser;
 import com.cwiztech.login.repository.loginUserRepository;
 
 @Service("userDetailsService")
@@ -14,9 +16,13 @@ public class UserService implements UserDetailsService {
 	private loginUserRepository userRepository;
 
 	@Override
+	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-		return userRepository.getUser(username);
-
+		LoginUser loginuser = userRepository.getUser(username);
+		if (loginuser != null) {
+            return loginuser;
+        }
+        throw new UsernameNotFoundException(username);
 	}
 }
