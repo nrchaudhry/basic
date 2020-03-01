@@ -5,6 +5,7 @@
 
 build/
 target/
+bin/
 
 
 src/main/java/com/cwiztech/ServletInitializer.java
